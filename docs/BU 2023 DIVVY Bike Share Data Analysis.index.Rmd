@@ -1,0 +1,410 @@
+---
+title: "Case Study: How does a bike-share navigate speedy success?"
+author: "John Rama"
+date: "2024-01-31"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### About the Company:
+In 2016, Cyclistic, fictional company, launched a successful bike-share offering. Since then, the program has grown to a fleet of 5,824 bicycles that are geotracked and locked into a network of 692 stations across Chicago. The bikes can be unlocked from one station and returned to any other station in the system anytime. Cyclistic sets itself apart by also offering reclining bikes, hand tricycles, and cargo bikes, making bike-share more inclusive to people with disabilities and riders who can’t use a standard two-wheeled bike. The majority of riders opt for traditional bikes; about 8% of riders use the assistive options. Cyclistic users are more likely to ride for leisure, but about 30% use them to commute to work each day.
+
+##### Company Growth History
+Until now, Cyclistic’s marketing strategy relied on building general awareness and appealing to broad consumer segments. One approach that helped make these things possible was the flexibility of its pricing plans: single-ride passes, full-day passes, and annual memberships. Customers who purchase single-ride or full-day passes are referred to as casual riders. Customers who purchase annual memberships are Cyclistic members. Cyclistic’s finance analysts have concluded that annual members are much more profitable than casual riders.
+
+##### The Business Task
+Design marketing strategies aimed at converting casual riders into annual members.
+
+##### Questions that will guide the future marketing program:
+1. How do annual members and casual riders use Cyclistic bikes differently?
+2. Why would casual riders buy Cyclistic annual memberships?
+3. How can Cyclistic use digital media to influence casual riders to become members?
+
+##### Case Study Objectives: 
+ 1. Identify how annual members and casual riders use Cyclistic bikes differently?
+ 2. Produce a report with the following deliverables.
+    + A clear statement of the business task
+    + A description of all data sources used
+    + Documentation of any cleaning or manipulation of data
+    + A summary of your analysis
+    + Supporting visualizations and key findings
+    + Your top three recommendations based on your analysis
+
+##### Data and License Agreement
+- Data provided by DIVVY: ["divvy-tripdata"](https://divvy-tripdata.s3.amazonaws.com/index.html)
+- [License Agreement](https://www.divvybikes.com/data-license-agreement)
+   
+### Load Packages
+```{r Load Packages, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(skimr)
+library(janitor)
+library(readr)
+library(ggplot2)
+library(knitr)
+```
+
+## Prepare and Process Data
+### Load and Inspect Monthly 2023 DIVVY Bike Share Data
+```{r Load Monthly Data, include=FALSE}
+X202301_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202301_divvy_tripdata.csv")
+X202302_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202302_divvy_tripdata.csv")
+X202303_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202303_divvy_tripdata.csv")
+X202304_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202304_divvy_tripdata.csv")
+X202305_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202305_divvy_tripdata.csv")
+X202306_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202306_divvy_tripdata.csv")
+X202307_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202307_divvy_tripdata.csv")
+X202308_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202307_divvy_tripdata.csv")
+X202309_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202307_divvy_tripdata.csv")
+X202310_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202310_divvy_tripdata.csv")
+X202311_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202311_divvy_tripdata.csv")
+X202312_divvy_tripdata <- read_csv("/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023/202312-divvy-tripdata.csv")
+```
+
+### Look for consistency in column names.
+```{r Inspect Column Names, results='hide'}
+colnames(X202301_divvy_tripdata)
+colnames(X202302_divvy_tripdata)
+colnames(X202303_divvy_tripdata)
+colnames(X202304_divvy_tripdata)
+colnames(X202305_divvy_tripdata)
+colnames(X202306_divvy_tripdata)
+colnames(X202307_divvy_tripdata)
+colnames(X202308_divvy_tripdata)
+colnames(X202309_divvy_tripdata)
+colnames(X202310_divvy_tripdata)
+colnames(X202311_divvy_tripdata)
+colnames(X202312_divvy_tripdata)
+```
+
+### Inspect structure of each data set: data type, format, and length.
+```{r Inspect structure of columns,results='hide'}
+str(X202301_divvy_tripdata)
+str(X202302_divvy_tripdata)
+str(X202303_divvy_tripdata)
+str(X202304_divvy_tripdata)
+str(X202305_divvy_tripdata)
+str(X202306_divvy_tripdata)
+str(X202307_divvy_tripdata)
+str(X202308_divvy_tripdata)
+str(X202309_divvy_tripdata)
+str(X202310_divvy_tripdata)
+str(X202311_divvy_tripdata)
+str(X202312_divvy_tripdata)
+```
+
+### Combine 2023 Monthly Data Into Single Dataset
+```{r Combine Monthly Data, message=FALSE, warning=FALSE, results='hide'}
+combined_tripdata_2023 <- list.files(path="/Users/johnrama/Documents/data_analytics_capstone_bikeshare_2023",
+  pattern = "*.csv",full.names = TRUE) %>%
+  lapply((read_csv)) %>% 
+  bind_rows()
+```
+
+### Inspect Combined Data
+```{r Inspect New Dataframe, echo = TRUE, results='hide'}
+## Create dataframe
+combined_tripdata_2023_df <- as.data.frame(combined_tripdata_2023)
+
+## Investigate new dataframe
+colnames(combined_tripdata_2023_df) #List of column names
+nrow(combined_tripdata_2023_df) #Number of rows in df
+dim(combined_tripdata_2023_df) #Dimensiions of df
+head(combined_tripdata_2023_df) #First 6 lines of df
+tail(combined_tripdata_2023_df) #Last 6 lines of df
+glimpse(combined_tripdata_2023_df) #List of columns and datatypes
+str(combined_tripdata_2023_df) #List of columns and datatypes
+summary(combined_tripdata_2023_df) #Statistical summary of data.
+
+##count number of distinct ride_ids
+n_distinct(combined_tripdata_2023_df$ride_id)
+```
+
+## Clean Data
+```{r Cleaning Data, echo = TRUE, results='hide'}
+## Trim white space from df for ride_id, member_casual, column, rideable_type, 
+## and start_station_name columns
+combined_tripdata_2023_df$ride_id <- str_squish(combined_tripdata_2023_df$ride_id)
+combined_tripdata_2023_df$member_casual <- str_squish(combined_tripdata_2023_df$member_casual)
+combined_tripdata_2023_df$rideable_type <- str_squish(combined_tripdata_2023_df$rideable_type)
+combined_tripdata_2023_df$start_station_name <- str_squish(combined_tripdata_2023_df$start_station_name)
+
+##Count the number of distinct values in each column
+sapply(combined_tripdata_2023_df, function(x) n_distinct(x)) 
+# Note: There are multiple spellings for the same start_station_name.
+# This results in a discrepancy in the number of start/end station names and id's.
+# Further cleaning would be necessary if analyzing start_station_names or ids.
+```
+
+### Add New Data for Analysis
+```{r Add New Data for Analysis, echo = TRUE, results='hide'}
+## Add columns for date, month, day, and year of each ride taken
+## This will allow us to aggregate ride data by month, day, or year
+combined_tripdata_2023_df$date <- as.Date(combined_tripdata_2023_df$started_at) 
+# format is yyyy-mm-dd
+
+combined_tripdata_2023_df$month <- format(as.Date(combined_tripdata_2023_df$date), "%m")
+combined_tripdata_2023_df$day <- format(as.Date(combined_tripdata_2023_df$date), "%d")
+combined_tripdata_2023_df$year <- format(as.Date(combined_tripdata_2023_df$date), "%Y")
+combined_tripdata_2023_df$day_of_week <- format(as.Date(combined_tripdata_2023_df$date), "%A")
+
+## Add column for start time for each ride taken
+## This will allow us to aggregate ride data by time of day
+combined_tripdata_2023_df$start_time <- format(as.POSIXct(combined_tripdata_2023_df$
+  started_at), format = "%H:%M:%S")
+
+## Add trip duration column to dataset (minutes)
+combined_tripdata_2023_df$trip_duration <- difftime(combined_tripdata_2023_df$
+  ended_at, combined_tripdata_2023_df$started_at, units = "mins")
+
+## Create dataframe with trip duration column
+comb_tripdata_2023_duration_df <- as.data.frame(combined_tripdata_2023_df)
+
+## Inspect the structure of the columns in our new df
+str(comb_tripdata_2023_duration_df)
+
+## Convert trip_duration to numeric
+is.numeric(comb_tripdata_2023_duration_df$trip_duration)
+comb_tripdata_2023_duration_df$trip_duration <- 
+  as.numeric(comb_tripdata_2023_duration_df$trip_duration)
+is.numeric(comb_tripdata_2023_duration_df$trip_duration)
+```
+
+### Investigate Trip Duration Values
+```{r Summary stats - trip_duration, echo=TRUE}
+## Inspect trip_duration column values
+summary(comb_tripdata_2023_duration_df$trip_duration)
+```
+Note: Negative trip duration values exist as do null values as start station names.
+
+### Remove Bad Data
+```{r Remove Bad Data, results='hide'}
+## Remove bad data, including negative values for trip duration and null values 
+## for start_station_name
+## Null values occurr where bikes were taken out of circulation by DIVVY
+comb_tripdata_2023_duration_clean <- comb_tripdata_2023_duration_df %>% 
+  filter(!(is.na(start_station_name) | start_station_name == ""),  !(is.na(end_station_name) |
+  end_station_name == ""), !(trip_duration <= 0))
+# removed start and end station names as NA | blanks and negative trip_duration values
+
+## Look for duplicate values in df
+comb_tripdata_2023_duration_clean %>% 
+  get_dupes(ride_id, rideable_type, started_at, start_station_id, member_casual, trip_duration)
+  
+## Confirm bad data was removed from dataset
+comb_tripdata_2023_duration_clean %>%
+  filter(is.na(start_station_name) | start_station_name == "", is.na(end_station_name) |
+  end_station_name == "",  trip_duration <= 0)
+```
+
+### Create Clean Dataframe for Analysis
+```{r Cleaned Dataframe}
+comb_tripdata_2023_cleaned <- as.data.frame(comb_tripdata_2023_duration_clean)
+```
+
+
+### Add Start Time Column to Clean Dataset
+Note: Start time is rounded to the nearest hour and formatted as time.
+```{r Add Rounded Start Time Column}
+## Add column for start time rounded to nearest hour
+comb_tripdata_2023_cleaned$rounded_nearest_start_time <- 
+  round_date(comb_tripdata_2023_cleaned$started_at,"hour")
+
+## Format rounded start time column to strickly be a time stamp
+comb_tripdata_2023_cleaned$rounded_nearest_start_time <- format(as.POSIXct(
+  comb_tripdata_2023_cleaned$rounded_nearest_start_time), format = "%H:%M")
+```
+
+
+## Analyze Data
+### Summary Statistics for Trip Duration (mean, median, max., and min.)
+```{r Descriptive Analysis, warning=FALSE}
+## Summary statistics for trip_duration for cleaned data set
+summary_trip_duration <- comb_tripdata_2023_cleaned %>% 
+  summarize(mean_trip_duration = mean(trip_duration), max_trip_duration =
+  max(trip_duration), min_trip_duration = min(trip_duration), median_trip_duration =
+  median(trip_duration))
+
+##Make table to display summary statistics
+summary_trip_duration %>% 
+  knitr::kable(col.names = c("Mean", "Max", "Min", "Median"), 
+  caption = "Summary Stats for Trip Duration (minutes)")
+```
+
+### Aggregate Trip Duration as a Function of Member Type
+Note: All values are given in minutes.
+```{r Agg Trip Dur ~ Member Type}
+## Compare trip_duration for members and casual riders
+agg_mean <- aggregate(comb_tripdata_2023_cleaned$trip_duration~
+  comb_tripdata_2023_cleaned$member_casual, FUN = mean)
+agg_median <- aggregate(comb_tripdata_2023_cleaned$trip_duration~
+  comb_tripdata_2023_cleaned$member_casual, FUN = median)
+agg_max <- aggregate(comb_tripdata_2023_cleaned$trip_duration~
+  comb_tripdata_2023_cleaned$member_casual, FUN = max)
+agg_min <- aggregate(comb_tripdata_2023_cleaned$trip_duration~
+  comb_tripdata_2023_cleaned$member_casual, FUN = min)
+
+## Make tables of aggregate data
+agg_mean %>% 
+  knitr::kable(col.names = c("Member Type", "Mean Trip Duration"))
+agg_median %>% 
+  knitr::kable(col.names = c("Member Type", "Median Trip Duration"))
+agg_max %>% 
+  knitr::kable(col.names = c("Member Type", "Max Trip Duration"))
+agg_min %>% 
+  knitr::kable(col.names = c("Member Type", "Min Trip Duration"))
+```
+
+### Average Ride Duration as a Function of Weekday and Member Type
+```{r Avg Ride Dur ~ Weekday & Member Type, message=FALSE, warning=FALSE}
+## Order days of week
+comb_tripdata_2023_cleaned$day_of_week <- ordered(comb_tripdata_2023_cleaned$day_of_week,
+  levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+## Average (mean) trip duration by day of week for member and casual riders
+agg_mean_weekday_member <- comb_tripdata_2023_cleaned %>% 
+  aggregate(comb_tripdata_2023_cleaned$trip_duration ~
+  comb_tripdata_2023_cleaned$member_casual +
+  comb_tripdata_2023_cleaned$day_of_week, FUN = mean)
+
+## Avg (median) trip duration by day of week for member and casual riders
+agg_med_weekday_member <- comb_tripdata_2023_cleaned %>% 
+  aggregate(comb_tripdata_2023_cleaned$trip_duration ~ 
+  comb_tripdata_2023_cleaned$member_casual +
+  comb_tripdata_2023_cleaned$day_of_week, FUN = median)
+
+## Make tables of avg trip duration by day of week and member type
+agg_mean_weekday_member %>% 
+  knitr::kable(col.names = c("Member Type", "Weekday", "Mean Trip Duration"), 
+  caption = "Mean Trip Duration (minutes)")
+
+agg_med_weekday_member %>% 
+  knitr::kable(col.names = c("Member Type", "Weekday", "Median Trip Duration"), 
+  caption = "Median Trip Duration (minutes)")
+```
+
+
+## Vizualize Data
+### Plots Showing the Number of Rides & Percents by Weekday for Member Type
+```{r Plot Num Rides & Percent by Weekday for Member Type, message=FALSE, warning=FALSE, fig.show='hold', out.width="50%"}
+## Create plot to analyze number of rides by weekday, for member_casual
+comb_tripdata_2023_cleaned %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% #create weekday field
+  group_by(member_casual, weekday) %>%  # group by usertype and weekday
+  summarize(number_rides = n(), average_duration = mean(trip_duration)) %>% 
+  # num of rides & avg duration
+  arrange(member_casual, weekday) %>%  # arrange
+  ggplot() + geom_col(mapping = aes(x = weekday, y = number_rides, fill = member_casual),
+  position = "dodge") + labs(title = "Rider Habits", subtitle = "Ride frequency by
+  day of week", caption = "www.divvybikes.com/data") +
+  scale_fill_brewer(palette = "Set1") 
+  # column plot num rides v weekday, adjusted color
+
+## Analyze & plot the percentage of rides by weekday by member type
+comb_tripdata_2023_cleaned %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% # create weekday field
+  group_by(member_casual, weekday) %>% # group by member type & weekday
+  summarise(count=n()) %>% #count the number of each type of member
+  mutate(percent_of_rides = count/sum(count) *100) %>% # Calculate percent rides by weekday
+  arrange(member_casual, weekday) %>% # arrange
+  ggplot() + geom_col(mapping = aes(x = weekday, y = percent_of_rides,
+  fill = member_casual), position = "dodge") + labs(title = "Breakdown of Member Rides", subtitle = "Percent of rides by day of week", caption = "www.divvybikes.com/data") + scale_fill_brewer(palette = "Set1")
+  # plot percent of rides by weekday for each type of member v season, adjust color
+```
+**Key Finding #1**
+
+* The plot on the left shows that casual riders prefer to ride on weekend days whereas members tend to ride more during the week.
+* More casual rides occur on Saturday than any other day of the week and more member rides occur between Tuesday and Thursday than any other days of the week.
+
+* The plot on the right shows that, although more members ride on any given day of the week, when compared to casual riders, a greater percentage of casual riders ride from Friday through Sunday.
+* Slightly over 50% of all casual rides occur on the weekend (Fri.-Sun.) compared to only 36.9% of member rides.
+
+**Takeaway**
+Casual riders tend to ride more on weekend days suggesting that incentives should be targeting casual weekend riders. Possible incentives might include lowering the per minute cost of weekend rides, currenlty set at $0.18/min. (classic bike), for a set time period for anyone purchasing a new membership. Additionally, new members might receive a limited number of guest passes that may only be used on weekend days.
+
+### Plot Showing Median Ride Duration by Weekday for Member Type
+```{r Plot Med Duration v Weekday for Members, message=FALSE, warning=FALSE}
+## Create plot to analyze median ride duration by weekday, for member_casual
+comb_tripdata_2023_cleaned %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% # create weekday field
+  group_by(member_casual, weekday) %>%  # group by usertype and weekday
+  summarize(number_rides = n(), med_duration_minutes = median(trip_duration)) %>% 
+  # num of rides & median ride duration
+  arrange(member_casual, weekday) %>%  # arrange
+  ggplot() + geom_col(mapping = aes(x = weekday, y = med_duration_minutes,
+  fill = member_casual), position = "dodge") + labs(title = "Daily Ride Length",
+  subtitle = "Median ride length by day of week", caption = "www.divvybikes.com/data") +
+  scale_fill_brewer(palette = "Set1") + theme(axis.text.x = element_text(size = 10))
+  # column plot median ride duration v weekday, adjusted color
+```
+**Key Finding #2**
+
+* The plot shows that casual riders take longer rides on Saturdays and Sundays.
+* Length of rides for casual riders falls toward the middle of the week and then begins to increase again moving toward the weekend. 
+* Members ride lengths remain consistent throughout the week with a slight increase in ride length on Saturdays and Sundays.
+
+**Takeaway**
+Look to incentivize longer rides on weekends, with the purchase of a new membership. In 2023 alone, close to 100,000 weekend rides (Fri.-Sun.) were taken, by casual riders that lasted longer than 45 minutes. Members are currently charged $0.18/minute (classic bike) for rides lasting over 45 minutes. One incentive might be to extend the length of the free ride time to 60 minutes for new members allowing them to ride longer on the weekend. Additionally, new members could receive bonus points for participating in the Bike Angels program on weekend days and use those points toward purchasing extra riding minutes, DIVVY swag, discounted rates on scooters and e-bikes, or reduced membership renewal costs.
+
+### Plot Showing Number of Rides & Trip Duration by Time of Day for Member Type
+```{r Plot Num Rides v Time of Day for Member Type, message=FALSE, warning=FALSE, fig.show='hold', out.width="50%"}
+comb_tripdata_2023_cleaned %>% 
+  group_by(member_casual, rounded_nearest_start_time) %>% # group by member_casual & time
+  summarize(number_rides = n(), avg_trip_duration = mean(trip_duration)) %>% 
+  # num of rides and median trip duration
+  arrange(member_casual, rounded_nearest_start_time) %>% # arrange member_casual & time
+  ggplot() + geom_line(mapping = aes(x = rounded_nearest_start_time, y = number_rides,
+  group = member_casual, color = member_casual)) + labs(title = "Ride Times", subtitle = "Ride habits by time of day (CST)", caption = "www.divvybikes.com/data ") +
+  scale_color_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  # line plot of number of rides by time of day by member type
+
+## Analyze and plot ride duration by time of day
+comb_tripdata_2023_cleaned %>% 
+  group_by(member_casual, rounded_nearest_start_time) %>% # group by member_casual & time
+  summarize(number_rides = n(), med_duration_minutes = median(trip_duration)) %>% 
+  # num of rides and median trip duration
+  arrange(member_casual, rounded_nearest_start_time) %>% # arrange member_casual & time
+  ggplot() + geom_line(mapping = aes(x = rounded_nearest_start_time, y = med_duration_minutes,
+  group = member_casual, color = member_casual)) + labs(title = "Hourly Ride Length", 
+  subtitle = "Median ride length by hour (CST - rounded to nearest hour)", 
+  caption = "www.divvybikes.com/data ") + scale_color_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  # line plot of number of rides by time of day by member type
+```
+**Key Finding #3**
+
+* The plot on the left shows the number of casual rides, occurring on any given day, is highest between the hours of 4pm and 6pm (CST).
+* The number of member rides spikes between the hours of 7am and 10am and then again between the 4pm and 7pm (CST).
+
+* The plot on the right indicates that the length of casual rides dramatically increases between the hours of 9am and 11am (CST). 
+* Casual riders ride for longer periods of time between the hours of 11am and 3pm (CST). It is during this period of time that casual rider ride times peak for the day.
+* Member ride lengths are much more consistent throughout the course of the day, with the longest rides occurring between the hours of 4pm and 7pm (CST).
+
+**Takeaway**
+From this analysis we learn that more casual riders ride between the hours of 4pm and 6pm than another part of the day. Additionally, many casual riders are riding for longer periods of time between the hours of 11am and 3pm. With these two thoughts in mind new member incentives should be focused on the 289,257 rides that occured between 4pm and 6pm as well as the 398,147 riders who rode for longer periods of time between the hours of 11am and 3pm. One incentive might include earning extra reward points for rides taken between the hours of 4pm and 6pm, for new members, that could then be applied to purchasing extra riding minutes, DIVVY swag, or reduced membership renewal costs. In addition, new members would also be granted, for a limited period of time, 60 minutes of free ride time (up from 45 minutes), before per minute rates apply, and double the points for participating in the Bike Angel program, during the hours 11am - 3pm.
+
+###Summary###
+
+**The Business Task:**
+Design marketing strategies aimed at converting casual riders into annual members.
+
+**Questions to be answered from analysis:**
+How do annual members and casual riders use Cyclistic bikes differently?
+
+**Marketing strategy recommendations aimed at converting casual riders into annual members:**
+Recommendations are based on these findings:
+
+* Casual riders ride more frequently on weekend days (Friday - Sunday) and daily between the hours of 4pm and 6pm.
+* Casual riders ride for longer periods of time on weekend days (Friday - Sunday) and daily between the hours of 11am and 3pm.
+
+**Top three marketing strategy recommendations:**
+
+1. Increase the free ride time interval to 60 minutes for rides occurring on the weekends (Friday - Sunday), for new members and for a limited time (TBD). *Potential Impact: 96,695 casual rides, lasting at least 45 min., were taken on weekend days in the year 2023. This incentive would therefore impact approximately 6% of the total casual ride population.*
+2. Award double bonus points for participating in the Bike Angel program on weekends (Friday - Sunday), for new members and for a limited time (TBD). Bonus points can be redeemed for additional ride minutes, discounted rates on scooters and e-bikes, DIVVY swag, or reduced membership renewal costs. *Potential Impact: Over half of all casual rides occurred on a weekend day in 2023 (792,571 of the 1,531,714 total casual rides). This incentive would reach an estimated 52% of casual riders.*
+3. Reduce the per minute use fee from $0.18/min. to $0.15/min. for rides occurring between the hours of 11am and 3pm any day of the week, for new members and for a limited time (TBD). *Potential Impact: During the 2023 year, 398147 casual rides took place between the hours of 11am and 3pm. This incentive would apply to 26% of all casual rides from 2023.* 
+
+   
